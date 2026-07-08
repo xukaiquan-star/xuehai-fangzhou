@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学海方舟 · 学习计划工具</title>
+<!-- 防闪烁：已登录则立即隐藏登录层 -->
+<script>
+  if(sessionStorage.getItem('ark_session')) document.documentElement.classList.add('logged-in');
+</script>
+<!-- Puter.js SDK (AI 能力) -->
+<script src="https://js.puter.com/v2/"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== 登录遮罩 ========== -->
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="login-boat">⛵</div>
+      <h2 class="login-title">学海方舟</h2>
+      <p class="login-subtitle">计划不白写 · 扬帆起航</p>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" data-tab="login" onclick="switchLoginTab('login')">⚓ 登船</button>
+      <button class="login-tab" data-tab="register" onclick="switchLoginTab('register')">🚢 注册新船</button>
+    </div>
+    <div class="login-form">
+      <input type="text" id="login-username" class="login-input" placeholder="输入昵称" maxlength="12" autocomplete="off">
+      <input type="password" id="login-password" class="login-input" placeholder="4 位数字密码" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      <button id="login-submit-btn" class="login-btn" onclick="handleLoginSubmit()">⚓ 登船</button>
+      <button class="login-guest-btn" onclick="enterAsGuest()">👀 先逛逛（游客模式）</button>
+    </div>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+
+<!-- ========== 封面页 ========== -->
+<div id="cover-page">
+  <canvas id="ocean-canvas"></canvas>
+  <div class="cover-content">
+    <div class="ark-ship">
+      <div class="ship-body">⛵</div>
+      <div class="ship-wake"></div>
+    </div>
+    <h1 class="cover-title">
+      <span class="title-cn">学海方舟</span>
+      <span class="title-sub">智慧航行 · 知识无界</span>
+    </h1>
+    <p class="cover-desc">三种计划引擎 · 番茄专注 · 四象限管理 · 沉浸心流</p>
+    <button class="enter-btn" onclick="enterApp()">
+      <span>扬帆启航</span>
+      <span class="btn-arrow">→</span>
+    </button>
+    <div class="cover-wave-text">每一次学习，都是一次远航</div>
+  </div>
+  <div class="cover-bubbles" id="cover-bubbles"></div>
+</div>
+
+<!-- ========== 主应用 ========== -->
+<div id="main-app" style="display:none;">
+
+  <!-- 顶部工具栏 -->
+  <div class="top-bar">
+    <div class="top-logo" onclick="showCover()">⛵ 学海方舟</div>
+    <div class="top-widgets">
+      <!-- 正计时 -->
+      <div class="widget-card" id="widget-timer">
+        <div class="widget-icon">⏱</div>
+        <div class="widget-info">
+          <div class="widget-label">正计时</div>
+          <div class="widget-value" id="timer-display">00:00:00</div>
+        </div>
+        <div class="widget-actions">
+          <button class="wbtn" onclick="timerToggle()" id="timer-btn">▶</button>
+          <button class="wbtn" onclick="timerReset()">↺</button>
+        </div>
+      </div>
+      <!-- 番茄钟 -->
+      <div class="widget-card" id="widget-pomodoro">
+        <div class="widget-icon">🍅</div>
+        <div class="widget-info">
+          <div class="widget-label">番茄钟</div>
+          <div class="widget-value" id="pomo-display">25:00</div>
+        </div>
+        <div class="widget-actions">
+          <button class="wbtn" onclick="pomoToggle()" id="pomo-btn">▶</button>
+          <button class="wbtn" onclick="pomoReset()">↺</button>
+          <span class="pomo-count">🍅×<span id="pomo-count">0</span></span>
+        </div>
+      </div>
+      <!-- 白噪音 -->
+      <div class="widget-card">
+        <div class="widget-icon">🎵</div>
+        <div class="widget-info">
+          <div class="widget-label">白噪音</div>
+          <div class="widget-value" id="noise-label">已关闭</div>
+        </div>
+        <div class="widget-actions noise-btns">
+          <button class="wbtn" onclick="playNoise('rain')" title="雨声">🌧</button>
+          <button class="wbtn" onclick="playNoise('wave')" title="海浪">🌊</button>
+          <button class="wbtn" onclick="playNoise('wind')" title="风声">💨</button>
+          <button class="wbtn" onclick="stopNoise()">■</button>
+        </div>
+      </div>
+      <!-- 每日金句 -->
+      <div class="widget-card widget-quote" id="widget-quote">
+        <div class="widget-icon">💡</div>
+        <div class="quote-text" id="daily-quote">点击刷新金句</div>
+        <button class="wbtn" onclick="refreshQuote()">↻</button>
+      </div>
+      <!-- 暗黑模式 -->
+      <button class="mode-toggle" onclick="toggleDark()" id="dark-btn" title="切换暗黑模式">🌙</button>
+      <!-- 用户菜单 -->
+      <div class="user-menu" id="user-menu">
+        <button class="user-avatar-btn" onclick="toggleUserMenu(event)">
+          <span class="user-avatar" id="user-avatar">⛵</span>
+          <span class="user-name-text" id="user-name-text">游客</span>
+        </button>
+        <div class="user-dropdown" id="user-dropdown">
+          <div class="user-dropdown-header">
+            <span class="user-dropdown-avatar" id="user-dd-avatar">⛵</span>
+            <div>
+              <div style="font-weight:700;font-size:0.85rem;" id="user-dd-name">游客</div>
+              <div style="font-size:0.7rem;color:var(--text-secondary);" id="user-dd-type">游客模式</div>
+            </div>
+          </div>
+          <div class="user-dropdown-item" onclick="logoutUser()">🚪 切换账号</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面布局 -->
+  <div class="app-layout">
+    <!-- 侧栏导航 -->
+    <nav class="sidebar" id="sidebar">
+      <div class="nav-group">
+        <div class="nav-label">📍 计划引擎</div>
+        <a class="nav-item active" onclick="showPage('home')" data-page="home">🏠 首页总览</a>
+        <a class="nav-item" onclick="showPage('zhixing')" data-page="zhixing">⏰ 知行·番茄流</a>
+        <a class="nav-item" onclick="showPage('mingjing')" data-page="mingjing">🪞 明镜·四象限流</a>
+        <a class="nav-item" onclick="showPage('modi')" data-page="modi">💧 墨滴·沉浸流</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">📚 学习工具</div>
+        <a class="nav-item" onclick="showPage('wrongbook')" data-page="wrongbook">📕 错题本</a>
+        <a class="nav-item" onclick="showPage('review')" data-page="review">📝 每日复盘</a>
+        <a class="nav-item" onclick="showPage('knowledge')" data-page="knowledge">🗺 知识图谱</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">🎮 成长系统</div>
+        <a class="nav-item" onclick="showPage('garden')" data-page="garden">🌱 电子盆栽</a>
+        <a class="nav-item" onclick="showPage('stats')" data-page="stats">📊 学习统计</a>
+        <a class="nav-item" onclick="showPage('achievements')" data-page="achievements">🏆 成就徽章</a>
+      </div>
+      <div class="sidebar-footer">
+        <button class="sidebar-btn" onclick="exportData()">📤 导出数据</button>
+        <button class="sidebar-btn" onclick="importData()">📥 导入数据</button>
+      </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content" id="main-content">
+      <!-- 各页面将动态注入 -->
+    </main>
+  </div>
+</div>
+
+<!-- 全屏心流覆盖层 -->
+<div id="flow-fullscreen">
+  <div class="flow-fs-stars" id="flow-fs-stars"></div>
+  <div class="flow-fs-label">💧 心流沉浸中</div>
+  <div class="flow-fs-time" id="flow-fs-time">00:00</div>
+  <div class="flow-fs-hint">长按或按 ESC 退出心流模式</div>
+</div>
+
+<!-- 移动端底部 Tab 导航 -->
+<nav class="mobile-tabs" id="mobile-tabs">
+  <div class="mobile-tab-row">
+    <button class="mobile-tab active" data-mtab="home" onclick="showPage('home')">
+      <span class="tab-icon">🏠</span>首页
+    </button>
+    <button class="mobile-tab" data-mtab="zhixing" onclick="showPage('zhixing')">
+      <span class="tab-icon">⏰</span>番茄
+    </button>
+    <button class="mobile-tab" data-mtab="mingjing" onclick="showPage('mingjing')">
+      <span class="tab-icon">🪞</span>四象限
+    </button>
+    <button class="mobile-tab" data-mtab="modi" onclick="showPage('modi')">
+      <span class="tab-icon">💧</span>沉浸
+    </button>
+    <button class="mobile-tab" data-mtab="garden" onclick="showPage('garden')">
+      <span class="tab-icon">🌱</span>成长
+    </button>
+  </div>
+</nav>
+
+<!-- 提示浮层 -->
+<div id="toast" class="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
