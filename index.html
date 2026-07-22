@@ -2,14 +2,21 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>学海方舟 · 学习计划工具</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>学海方舟 · AI 督学 + 趣味工具箱</title>
+<meta name="description" content="学海方舟 v2.0 — 面向小学生的 AI 督学 + 成长伙伴 + 趣味工具箱。三大计划引擎、番茄钟、四象限、心流沉浸、错题复习、知识图谱、百宝箱趣味工具。">
+<meta property="og:title" content="学海方舟 · AI 督学 + 趣味工具箱">
+<meta property="og:description" content="三大计划引擎 × AI 督学 × 游戏化成长 × 百宝箱趣味工具">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ea580c">
+<meta name="application-name" content="学海方舟">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="学海方舟">
 <!-- 防闪烁：已登录则立即隐藏登录层 -->
 <script>
   if(sessionStorage.getItem('ark_session')) document.documentElement.classList.add('logged-in');
 </script>
-<!-- Puter.js SDK (AI 能力) -->
-<script src="https://js.puter.com/v2/"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,8 +34,14 @@
       <button class="login-tab" data-tab="register" onclick="switchLoginTab('register')">🚢 注册新船</button>
     </div>
     <div class="login-form">
-      <input type="text" id="login-username" class="login-input" placeholder="输入昵称" maxlength="12" autocomplete="off">
-      <input type="password" id="login-password" class="login-input" placeholder="4 位数字密码" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      <div class="input-clear-wrap">
+        <input type="text" id="login-username" class="login-input" placeholder="输入昵称" maxlength="12" autocomplete="off">
+        <button class="input-clear-btn" onclick="clearInput('login-username')" title="清空" style="right:6px;">✕</button>
+      </div>
+      <div class="input-clear-wrap">
+        <input type="password" id="login-password" class="login-input" placeholder="4 位数字密码" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        <button class="input-clear-btn" onclick="clearInput('login-password')" title="清空" style="right:6px;">✕</button>
+      </div>
       <button id="login-submit-btn" class="login-btn" onclick="handleLoginSubmit()">⚓ 登船</button>
       <button class="login-guest-btn" onclick="enterAsGuest()">👀 先逛逛（游客模式）</button>
     </div>
@@ -63,6 +76,9 @@
 
   <!-- 顶部工具栏 -->
   <div class="top-bar">
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburgerMenu()" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
     <div class="top-logo" onclick="showCover()">⛵ 学海方舟</div>
     <div class="top-widgets">
       <!-- 正计时 -->
@@ -127,6 +143,7 @@
             </div>
           </div>
           <div class="user-dropdown-item" onclick="logoutUser()">🚪 切换账号</div>
+          <div class="user-dropdown-item" onclick="confirmLogout()" style="color:#ef4444;border-top:1px solid var(--border-color);">🚪 退出登录</div>
         </div>
       </div>
     </div>
@@ -145,19 +162,31 @@
       </div>
       <div class="nav-group">
         <div class="nav-label">📚 学习工具</div>
+        <a class="nav-item" onclick="showPage('aitutor')" data-page="aitutor">🤖 AI导师·小海</a>
         <a class="nav-item" onclick="showPage('wrongbook')" data-page="wrongbook">📕 错题本</a>
         <a class="nav-item" onclick="showPage('review')" data-page="review">📝 每日复盘</a>
         <a class="nav-item" onclick="showPage('knowledge')" data-page="knowledge">🗺 知识图谱</a>
+        <a class="nav-item" onclick="showPage('exam')" data-page="exam">✏️ 模拟考场</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">🤝 方舟社区</div>
+        <a class="nav-item" onclick="showPage('space')" data-page="space">🌊 学海空间</a>
+        <a class="nav-item" onclick="showPage('space');setTimeout(openGroupDrawer,200)" data-page="groups">👥 学友群</a>
+        <a class="nav-item" onclick="showPage('classes')" data-page="classes">🎓 小班</a>
+        <a class="nav-item" onclick="showPage('leaderboard')" data-page="leaderboard">🏅 排行榜</a>
+        <a class="nav-item" onclick="showPage('profile')" data-page="profile">👤 个人中心</a>
       </div>
       <div class="nav-group">
         <div class="nav-label">🎮 成长系统</div>
         <a class="nav-item" onclick="showPage('garden')" data-page="garden">🌱 电子盆栽</a>
         <a class="nav-item" onclick="showPage('stats')" data-page="stats">📊 学习统计</a>
         <a class="nav-item" onclick="showPage('achievements')" data-page="achievements">🏆 成就徽章</a>
+        <a class="nav-item" onclick="showPage('shop')" data-page="shop">🛍️ 积分商店</a>
       </div>
       <div class="sidebar-footer">
         <button class="sidebar-btn" onclick="exportData()">📤 导出数据</button>
-        <button class="sidebar-btn" onclick="importData()">📥 导入数据</button>
+        <button class="sidebar-btn" onclick="openDataCenter()">📥 数据下载中心</button>
+        <button class="clear-all-btn" onclick="clearAllData()">🧹 清空所有数据</button>
       </div>
     </nav>
 
@@ -176,29 +205,183 @@
   <div class="flow-fs-hint">长按或按 ESC 退出心流模式</div>
 </div>
 
-<!-- 移动端底部 Tab 导航 -->
-<nav class="mobile-tabs" id="mobile-tabs">
-  <div class="mobile-tab-row">
-    <button class="mobile-tab active" data-mtab="home" onclick="showPage('home')">
-      <span class="tab-icon">🏠</span>首页
+<!-- 移动端导航浮窗 FAB -->
+<button class="mobile-nav-fab" id="mobile-nav-fab" onclick="toggleMobileNav()" aria-label="导航菜单">
+  <span class="fab-icon">⛵</span>
+</button>
+
+<!-- 全局悬浮反馈按钮 -->
+<button class="feedback-fab" id="feedback-fab" onclick="showPage('feedback')" aria-label="问题反馈" title="问题反馈">
+  <span>💬</span>
+</button>
+
+<!-- 移动端导航抽屉遮罩 -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()"></div>
+
+<!-- 移动端导航抽屉 -->
+<nav class="mobile-nav-drawer" id="mobile-nav-drawer">
+  <div class="mobile-nav-handle" onclick="closeMobileNav()">
+    <span class="mobile-nav-handle-bar"></span>
+  </div>
+  <div class="mobile-nav-title">⛵ 学海方舟 · 导航</div>
+  <div class="mobile-nav-grid" id="mobile-nav-grid">
+    <button class="mobile-nav-item" data-mnav="home" onclick="mobileNavTo('home')">
+      <span class="mnav-icon">🏠</span>
+      <span class="mnav-label">首页总览</span>
     </button>
-    <button class="mobile-tab" data-mtab="zhixing" onclick="showPage('zhixing')">
-      <span class="tab-icon">⏰</span>番茄
+    <button class="mobile-nav-item" data-mnav="zhixing" onclick="mobileNavTo('zhixing')">
+      <span class="mnav-icon">⏰</span>
+      <span class="mnav-label">计划引擎</span>
     </button>
-    <button class="mobile-tab" data-mtab="mingjing" onclick="showPage('mingjing')">
-      <span class="tab-icon">🪞</span>四象限
+    <button class="mobile-nav-item" data-mnav="space" onclick="mobileNavTo('space')">
+      <span class="mnav-icon">🌊</span>
+      <span class="mnav-label">学海空间</span>
     </button>
-    <button class="mobile-tab" data-mtab="modi" onclick="showPage('modi')">
-      <span class="tab-icon">💧</span>沉浸
+    <button class="mobile-nav-item" data-mnav="aitutor" onclick="mobileNavTo('aitutor')">
+      <span class="mnav-icon">🤖</span>
+      <span class="mnav-label">AI导师</span>
     </button>
-    <button class="mobile-tab" data-mtab="garden" onclick="showPage('garden')">
-      <span class="tab-icon">🌱</span>成长
+    <button class="mobile-nav-item" data-mnav="shop" onclick="mobileNavTo('shop')">
+      <span class="mnav-icon">🛍️</span>
+      <span class="mnav-label">积分商店</span>
+    </button>
+    <button class="mobile-nav-item" data-mnav="stats" onclick="mobileNavTo('stats')">
+      <span class="mnav-icon">📊</span>
+      <span class="mnav-label">数据中心</span>
     </button>
   </div>
 </nav>
 
 <!-- 提示浮层 -->
 <div id="toast" class="toast"></div>
+
+<!-- ========== v3.0 弹窗容器 ========== -->
+<!-- 商品详情弹窗 -->
+<div id="item-modal" class="modal-overlay" style="display:none;" onclick="closeModal('item-modal')">
+  <div class="modal-box" onclick="event.stopPropagation()" id="item-modal-content"></div>
+</div>
+
+<!-- 考试详情弹窗 -->
+<div id="exam-modal" class="modal-overlay" style="display:none;" onclick="closeModal('exam-modal')">
+  <div class="modal-box" onclick="event.stopPropagation()" id="exam-modal-content"></div>
+</div>
+
+<!-- 反馈图片大图查看弹窗 -->
+<div id="feedback-image-modal" class="modal-overlay" style="display:none;" onclick="closeModal('feedback-image-modal')">
+  <div class="modal-box" style="max-width:90vw;padding:0.5rem;background:transparent;border:none;box-shadow:none;" onclick="event.stopPropagation()" id="feedback-image-modal-content"></div>
+</div>
+
+<!-- 反馈详情弹窗（管理后台） -->
+<div id="feedback-detail-modal" class="modal-overlay" style="display:none;" onclick="closeModal('feedback-detail-modal')">
+  <div class="modal-box modal-lg" onclick="event.stopPropagation()" id="feedback-detail-modal-content"></div>
+</div>
+
+<!-- 头像裁剪弹窗 -->
+<div id="avatar-crop-modal" class="modal-overlay" style="display:none;" onclick="closeModal('avatar-crop-modal')">
+  <div class="modal-box" style="max-width:500px;" onclick="event.stopPropagation()" id="avatar-crop-modal-content"></div>
+</div>
+
+<!-- 数据下载中心弹窗 -->
+<div id="data-modal" class="modal-overlay" style="display:none;" onclick="closeModal('data-modal')">
+  <div class="modal-box modal-lg" onclick="event.stopPropagation()" id="data-modal-content"></div>
+</div>
+  
+<!-- 小班创建弹窗 -->
+<div id="class-modal" class="modal-overlay" style="display:none;" onclick="closeModal('class-modal')">
+  <div class="modal-box" onclick="event.stopPropagation()" id="class-modal-content"></div>
+</div>
+
+<!-- 学友群右侧抽屉 -->
+<div id="group-drawer-overlay" class="group-drawer-overlay" onclick="closeGroupDrawer()"></div>
+<div id="group-drawer" class="group-drawer">
+  <div class="group-drawer-handle" onclick="closeGroupDrawer()">
+    <span>&times;</span>
+  </div>
+  <div id="group-drawer-content"></div>
+</div>
+
+<!-- 考试计时全屏覆盖层 -->
+<div id="exam-timer-overlay" class="exam-timer-overlay" style="display:none;">
+  <div class="exam-timer-content">
+    <div class="exam-timer-subject" id="et-subject"></div>
+    <div class="exam-timer-name" id="et-name"></div>
+    <div class="exam-timer-clock" id="et-clock">00:00</div>
+    <div class="exam-timer-total" id="et-total"></div>
+    <div class="exam-timer-progress-wrap">
+      <div class="exam-timer-progress-bar" id="et-progress"></div>
+    </div>
+    <button class="btn-primary exam-finish-btn" onclick="finishExam()">🏁 结束考试</button>
+  </div>
+</div>
+
+<!-- 侧滑菜单覆盖层 -->
+<div class="menu-overlay" id="menu-overlay" onclick="closeHamburgerMenu()"></div>
+
+<!-- 侧滑菜单 -->
+<nav class="slide-menu" id="slide-menu">
+  <div class="slide-menu-header">
+    <span style="font-size:1.8rem;">⛵</span>
+    <span style="font-weight:800;color:white;font-size:1rem;">学海方舟</span>
+    <button class="slide-menu-close" onclick="closeHamburgerMenu()">✕</button>
+  </div>
+  <div class="slide-menu-body">
+    <div class="nav-group">
+      <div class="nav-label">📍 计划引擎</div>
+      <a class="nav-item" onclick="showPage('home')" data-page="home">🏠 首页总览</a>
+      <a class="nav-item" onclick="showPage('zhixing')" data-page="zhixing">⏰ 知行·番茄流</a>
+      <a class="nav-item" onclick="showPage('mingjing')" data-page="mingjing">🪞 明镜·四象限流</a>
+      <a class="nav-item" onclick="showPage('modi')" data-page="modi">💧 墨滴·沉浸流</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">📚 学习工具</div>
+      <a class="nav-item" onclick="showPage('aitutor')" data-page="aitutor">🤖 AI导师·小海</a>
+      <a class="nav-item" onclick="showPage('wrongbook')" data-page="wrongbook">📕 错题本</a>
+      <a class="nav-item" onclick="showPage('review')" data-page="review">📝 每日复盘</a>
+      <a class="nav-item" onclick="showPage('knowledge')" data-page="knowledge">🗺 知识图谱</a>
+      <a class="nav-item" onclick="showPage('exam')" data-page="exam">✏️ 模拟考场</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">🤝 方舟社区</div>
+      <a class="nav-item" onclick="showPage('space')" data-page="space">🌊 学海空间</a>
+      <a class="nav-item" onclick="showPage('groups')" data-page="groups">👥 学友群</a>
+      <a class="nav-item" onclick="showPage('classes')" data-page="classes">🎓 小班</a>
+      <a class="nav-item" onclick="showPage('leaderboard')" data-page="leaderboard">🏅 排行榜</a>
+      <a class="nav-item" onclick="showPage('profile')" data-page="profile">👤 个人中心</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">🎮 成长系统</div>
+      <a class="nav-item" onclick="showPage('garden')" data-page="garden">🌱 电子盆栽</a>
+      <a class="nav-item" onclick="showPage('stats')" data-page="stats">📊 学习统计</a>
+      <a class="nav-item" onclick="showPage('achievements')" data-page="achievements">🏆 成就徽章</a>
+      <a class="nav-item" onclick="showPage('shop')" data-page="shop">🛍️ 积分商店</a>
+    </div>
+    <div class="slide-menu-footer">
+      <button class="sidebar-btn" onclick="exportData()">📤 导出数据</button>
+      <button class="sidebar-btn" onclick="openDataCenter()">📥 数据下载中心</button>
+      <button class="sidebar-btn" onclick="toggleDarkFromMenu()">🌙 切换暗黑模式</button>
+      <button class="clear-all-btn" onclick="clearAllData()">🧹 清空所有数据</button>
+    </div>
+  </div>
+</nav>
+
+<!-- 头像操作 Action Sheet -->
+<div id="avatar-action-sheet-overlay" class="action-sheet-overlay" onclick="closeAvatarActionSheet()"></div>
+<div id="avatar-action-sheet" class="action-sheet">
+  <div class="action-sheet-handle" onclick="closeAvatarActionSheet()"><span></span></div>
+  <div class="action-sheet-title">更换头像</div>
+  <button class="action-sheet-item" onclick="avatarActionFromCamera()">
+    <span class="action-sheet-icon">📷</span> 拍照
+  </button>
+  <button class="action-sheet-item" onclick="avatarActionFromAlbum()">
+    <span class="action-sheet-icon">🖼️</span> 从相册选择
+  </button>
+  <button class="action-sheet-item" onclick="avatarActionRestoreDefault()">
+    <span class="action-sheet-icon">🔄</span> 恢复默认头像
+  </button>
+  <button class="action-sheet-item cancel" onclick="closeAvatarActionSheet()">取消</button>
+</div>
+<input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarFileSelect(event)">
+
 <script src="app.js"></script>
 </body>
 </html>
